@@ -1,0 +1,366 @@
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f4f4f9;
+  height: 100vh;
+  display: flex;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+/* Error Messages */
+.error-message {
+  color: white;
+  background-color: #ff4d4f;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+  border: 1px solid #ff7875;
+  font-weight: bold;
+}
+
+/* Login */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #2f3136;
+  color: white;
+}
+
+/* Center the login box */
+.login-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  padding: 40px 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Styling the heading */
+.login-box h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+  outline: none;
+  font-size: 16px;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-box button:hover {
+  background-color: #0056b3;
+}
+
+/* Sidebar styling */
+.sidebar {
+  width: 300px;
+  background-color: #2f3136;
+  color: white;
+  padding: 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Search bar styling */
+.search-bar {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+  font-size: 16px;
+  outline: none;
+  background-color: #f1f1f1;
+  color: #333;
+}
+
+/* Chat list and active chat styling */
+.chat-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chat-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.chat-item .chat-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-left: 10px;
+}
+
+.chat-item p {
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Highlight active chat */
+.chat-item.active {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Online status (green dot) */
+.online-status {
+  width: 10px;
+  height: 10px;
+  background-color: #00ff00;
+  border-radius: 50%;
+}
+
+/* Logout button */
+.logout-button {
+  padding: 10px;
+  background-color: #ff4d4d;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+  background-color: #ff3333;
+}
+
+/* ChatWindow styles */
+.chat-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f7fa; /* Lighter background for the chat window */
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Soft shadow for modern feel */
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Add space between messages */
+}
+
+/* Styling for individual message bubbles */
+.message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  max-width: 60%;
+  word-wrap: break-word;
+  font-size: 0.95em;
+  line-height: 1.4;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* Subtle shadow for each message bubble */
+}
+
+/* Sent messages (your messages) */
+.sent {
+  background-color: #007bff; /* Blue background for sent messages */
+  color: white; /* White text for sent messages */
+  align-self: flex-end; /* Align the entire bubble to the right */
+  border-radius: 12px 12px 0 12px; /* Custom border radius */
+  text-align: left;
+  margin-left: auto;
+  width: -webkit-fill-available;
+}
+
+/* Received messages (other users' messages) */
+.received {
+  background-color: #f1f1f5; /* Light grey background for received messages */
+  color: #333; /* Dark text for readability */
+  align-self: flex-start; /* Align the entire bubble to the left */
+  border-radius: 12px 12px 12px 0;
+  margin-right: auto;
+  width: -webkit-fill-available;
+}
+
+/* Timestamp styling */
+.timestamp {
+  font-size: 0.75em;
+  color: #000; /* Muted color for timestamps */
+  margin-top: 5px; /* Space between the message text and the timestamp */
+  align-self: flex-end;
+}
+
+/* Message Options (Three dots for edit/delete) */
+.message-options {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 5px;
+  right: 10px;
+}
+
+.message-menu button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.message-menu button:hover {
+  color: #007bff; /* Highlight the three dots on hover */
+}
+
+/* Dropdown for Edit/Delete actions */
+.message-actions {
+  display: none;
+  position: absolute;
+  top: 25px;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for dropdown */
+}
+
+.message-menu:hover .message-actions {
+  display: block;
+}
+
+.message-actions button {
+  background: none;
+  border: none;
+  color: #333;
+  padding: 5px 10px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background-color 0.2s ease;
+}
+
+.message-actions button:hover {
+  background-color: #f1f1f1;
+}
+
+/* Image styling */
+.message-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* Soft shadow for images */
+}
+
+/* MessageInput styling */
+.message-input {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: white;
+  border-radius: 25px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05); /* Softer shadow for input area */
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.message-input input {
+  flex: 1;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 25px;
+  outline: none;
+  background-color: #eef1f5; /* Slightly lighter input background */
+  font-size: 0.95em;
+  color: #333;
+}
+
+.message-input input:focus {
+  background-color: white;
+  border: 1px solid #007bff; /* Border highlight on focus */
+}
+
+.message-input button {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 1.4em;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.message-input button:hover {
+  color: #0056b3; /* Darker blue on hover */
+}
+
+/* Scrollbar styling */
+.messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
