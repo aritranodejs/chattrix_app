@@ -1,30 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import MessageInput from './MessageInput'; // Ensure this component is properly imported
-import axios from 'axios'; // To handle the friend request API call and edit/delete messages
+import MessageInput from './MessageInput';
+import axios from 'axios'; // To handle friend request and edit/delete messages
 import { useNavigate } from 'react-router-dom';
+import io from 'socket.io-client'; // Import Socket.IO client
+
+// Initialize socket connection (make sure to replace process.env.API_URL with the actual URL)
+const socket = io(process.env.API_URL, {
+  transports: ['websocket'],
+});
 
 const ChatWindow = ({ chat, messages, onSendMessage }) => {
   const navigate = useNavigate();
   const [chatMessages, setChatMessages] = useState(messages || []);
-  const [isFriend, setIsFriend] = useState(false); // State to track if the user is a friend
-  const [loadingFriendRequest, setLoadingFriendRequest] = useState(false); // State for friend request status
+  const [isFriend, setIsFriend] = useState(false);
+  const [loadingFriendRequest, setLoadingFriendRequest] = useState(false);
   const [error, setError] = useState('');
-  const [editingMessage, setEditingMessage] = useState(null); // Track the message being edited
+  const [editingMessage, setEditingMessage] = useState(null);
 
-  const currentUserId = localStorage.getItem('id'); // Replace this with actual current user ID
+  const currentUserId = localStorage.getItem('id');
   const baseURL = process.env.REACT_APP_API_URL;
-  const token = localStorage.getItem('token'); // Get token from localStorage
+  const token = localStorage.getItem('token');
+
+  const room = currentUserId < chat._id ? `${currentUserId}-${chat._id}` : `${chat._id}-${currentUserId}`;
 
   useEffect(() => {
-    setChatMessages(messages);
-  }, [messages]);
-
-  // Check if the user is a friend by checking localStorage
-  useEffect(() => {
-    const isFriendStatus = localStorage.getItem(`isFriend_${chat._id}`) === 'true'; // Fix: compare with 'true'
+    const isFriendStatus = localStorage.getItem(`isFriend_${chat._id}`) === 'true';
     setIsFriend(isFriendStatus);
-  }, [chat]);
+    setChatMessages(messages);
+
+    // Join the room for real-time chat
+    socket.emit('joinRoom', room);
+    console.log(`Joined room: ${room}`);
+
+    // Listen for new messages in the room
+    socket.on('message', (newMessage) => {
+      console.log('New message received from socket:', newMessage);
+      setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
+
+    return () => {
+      socket.off('message'); // Cleanup listener when component unmounts
+    };
+  }, [messages, chat._id, room]);
 
   // Handle sending a new message
   const handleSendMessage = (newMessageText) => {
@@ -32,9 +50,10 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
       receiverId: chat._id,
       message: newMessageText,
       senderId: currentUserId, // Make sure senderId is set
-      createdAt: new Date(), // Add a timestamp for when the message is sent
-      token: token
+      createdAt: new Date(),
     };
+
+    // Call onSendMessage to send the message via API and update UI
     onSendMessage(chat._id, newMessage);
   };
 
@@ -54,7 +73,7 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
         msg._id === messageId ? { ...msg, message: newText } : msg
       );
       setChatMessages(updatedMessages);
-      setEditingMessage(null); // Clear editing mode
+      setEditingMessage(null);
     } catch (error) {
       console.error('Error editing message:', error);
     }
@@ -69,13 +88,13 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
         }
       });
       const updatedMessages = chatMessages.filter((msg) => msg._id !== messageId);
-      setChatMessages(updatedMessages); // Remove the message from state
+      setChatMessages(updatedMessages);
     } catch (error) {
       console.error('Error deleting message:', error);
     }
   };
 
-  // Format the timestamp for display (e.g., "3:15 PM")
+  // Format the timestamp for display
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -135,9 +154,7 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
 
   return (
     <div className="chat-window">
-      {/* Chat Header */}
       <div className="chat-header">
-        {/* Show Add Friend button if not a friend */}
         {isFriend === false && !loadingFriendRequest && (
           <button className="btn btn-primary" onClick={handleAddFriend}>
             Add Friend
@@ -147,15 +164,13 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </div>
 
-      {/* Messages Section */}
       <div className="messages">
         {chatMessages.length > 0 ? (
           chatMessages.map((message) => (
             <div
-              key={message._id}
+              key={message._id || Math.random()} // Ensure unique keys
               className={`message ${message.senderId === currentUserId ? 'sent' : 'received'}`}
             >
-              {/* Message Content */}
               <div className="message-content">
                 <strong>{message.senderId === currentUserId ? 'You' : chat.name}: </strong>
                 {editingMessage === message._id ? (
@@ -169,8 +184,6 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
                   <span>{message.message}</span>
                 )}
               </div>
-
-              {/* Message Options (three dots menu) */}
               <div className="message-options">
                 <span className="timestamp">{formatTimestamp(message.createdAt)}</span>
                 {message.senderId === currentUserId && (
@@ -186,12 +199,10 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
             </div>
           ))
         ) : (
-          isFriend === true ? ( // Fix: compare isFriend as boolean, not string
+          isFriend === true ? (
             <div className="no-messages">
-              {/* Check if the status is 'initiate' */}
               {chat?.status === 'initiate' ? (
                 <h3>
-                  {/* Check if the current user initiated the request */}
                   {chat?.senderId?._id !== currentUserId ? (
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <button className="btn btn-success" onClick={() => handleAcceptFriend('accepted')}>
@@ -200,7 +211,7 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
                       <button className="btn btn-danger" onClick={() => handleAcceptFriend('deleted')}>
                         Reject
                       </button>
-                    </div>                  
+                    </div>
                   ) : (
                     "Please wait for the friend request to be accepted."
                   )}
@@ -217,7 +228,6 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
         )}
       </div>
 
-      {/* Show MessageInput only if the user is a friend */}
       {((isFriend === true) && (chat?.status === 'accepted' || chat?.status === 'active')) && (
         <MessageInput onSendMessage={handleSendMessage} receiverId={chat._id} />
       )}
