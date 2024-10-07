@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import MessageInput from './MessageInput';
 import axios from 'axios'; // To handle friend request and edit/delete messages
@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client'; // Import Socket.IO client
 
 // Initialize socket connection (make sure to replace process.env.API_URL with the actual URL)
-const socket = io(process.env.API_URL, {
+const socket = io(process.env.REACT_APP_API_URL, {
   transports: ['websocket'],
 });
 
@@ -17,6 +17,7 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
   const [loadingFriendRequest, setLoadingFriendRequest] = useState(false);
   const [error, setError] = useState('');
   const [editingMessage, setEditingMessage] = useState(null);
+  const messageEndRef = useRef(null); // Reference to the message list end for auto-scroll
 
   const currentUserId = localStorage.getItem('id');
   const baseURL = process.env.REACT_APP_API_URL;
@@ -25,6 +26,7 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
   const room = currentUserId < chat._id ? `${currentUserId}-${chat._id}` : `${chat._id}-${currentUserId}`;
 
   useEffect(() => {
+    // Initialize isFriend status and chat messages
     const isFriendStatus = localStorage.getItem(`isFriend_${chat._id}`) === 'true';
     setIsFriend(isFriendStatus);
     setChatMessages(messages);
@@ -35,32 +37,84 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
 
     // Listen for new messages in the room
     socket.on('message', (newMessage) => {
-      console.log('New message received from socket:', newMessage);
+      console.log('New message received:', newMessage);
+
+      // Append new message to the chatMessages state
       setChatMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
+    // Cleanup listener when component unmounts
     return () => {
-      socket.off('message'); // Cleanup listener when component unmounts
+      socket.off('message');
     };
   }, [messages, chat._id, room]);
+
+  // Scroll to the bottom of the chat messages
+  const scrollToBottom = () => {
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    // Scroll to the bottom on first render or when messages change
+    scrollToBottom();
+  }, [chatMessages]);
+
+  // Helper function to format date for message grouping
+  const formatDate = (timestamp) => {
+    const messageDate = new Date(timestamp);
+    const today = new Date();
+
+    // Check if the message date is today
+    if (
+      messageDate.getDate() === today.getDate() &&
+      messageDate.getMonth() === today.getMonth() &&
+      messageDate.getFullYear() === today.getFullYear()
+    ) {
+      return 'Today';
+    }
+
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return messageDate.toLocaleDateString(undefined, options);
+  };
+
+  // Helper function to check if a message belongs to a new day
+  const isNewDay = (currentMessage, previousMessage) => {
+    const currentMessageDate = new Date(currentMessage.createdAt).setHours(0, 0, 0, 0);
+    const previousMessageDate = previousMessage
+      ? new Date(previousMessage.createdAt).setHours(0, 0, 0, 0)
+      : null;
+    return currentMessageDate !== previousMessageDate;
+  };
+
+  // Format the timestamp for display
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   // Handle sending a new message
   const handleSendMessage = (newMessageText) => {
     const newMessage = {
       receiverId: chat._id,
       message: newMessageText,
-      senderId: currentUserId, // Make sure senderId is set
+      senderId: currentUserId,
       createdAt: new Date(),
     };
 
-    // Call onSendMessage to send the message via API and update UI
+    // Emit the message to the server with the room information
+    socket.emit('sendMessage', { room, message: newMessage });
+
+    // Update local state for the sender immediately
+    setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+
+    // Call the onSendMessage prop to handle API-related logic
     onSendMessage(chat._id, newMessage);
   };
 
   // Handle editing a message
   const handleEditMessage = async (messageId, newText) => {
     try {
-      await axios.post(
+      await axios.put(
         `${baseURL}/chats/edit/${messageId}`,
         { message: newText },
         {
@@ -94,12 +148,6 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
     }
   };
 
-  // Format the timestamp for display
-  const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
   // Handle sending a friend request
   const handleAddFriend = async () => {
     setLoadingFriendRequest(true);
@@ -109,7 +157,7 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
         { receiverId: chat._id }, // Pass the chat user ID as the friendId
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -166,38 +214,48 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
 
       <div className="messages">
         {chatMessages.length > 0 ? (
-          chatMessages.map((message) => (
-            <div
-              key={message._id || Math.random()} // Ensure unique keys
-              className={`message ${message.senderId === currentUserId ? 'sent' : 'received'}`}
-            >
-              <div className="message-content">
-                <strong>{message.senderId === currentUserId ? 'You' : chat.name}: </strong>
-                {editingMessage === message._id ? (
-                  <input
-                    type="text"
-                    defaultValue={message.message}
-                    onBlur={(e) => handleEditMessage(message._id, e.target.value)}
-                    autoFocus
-                  />
-                ) : (
-                  <span>{message.message}</span>
-                )}
-              </div>
-              <div className="message-options">
-                <span className="timestamp">{formatTimestamp(message.createdAt)}</span>
-                {message.senderId === currentUserId && (
-                  <div className="message-menu">
-                    <button onClick={() => setEditingMessage(message._id)}>...</button>
-                    <div className="message-actions">
-                      <button onClick={() => setEditingMessage(message._id)}>Edit</button>
-                      <button onClick={() => handleDeleteMessage(message._id)}>Delete</button>
-                    </div>
+          chatMessages.map((message, index) => {
+            const previousMessage = chatMessages[index - 1];
+            const showDate = isNewDay(message, previousMessage);
+
+            return (
+              <React.Fragment key={message._id || Math.random()}>
+                {/* Show the date if it's a new day */}
+                {showDate && (
+                  <div className="message-date-badge">
+                    <span>{formatDate(message.createdAt)}</span>
                   </div>
                 )}
-              </div>
-            </div>
-          ))
+                <div className={`message ${message.senderId === currentUserId ? 'sent' : 'received'}`}>
+                  <div className="message-content">
+                    <strong>{message.senderId === currentUserId ? 'You' : chat.name}: </strong>
+                    {editingMessage === message._id ? (
+                      <input
+                        type="text"
+                        defaultValue={message.message}
+                        onBlur={(e) => handleEditMessage(message._id, e.target.value)}
+                        autoFocus
+                      />
+                    ) : (
+                      <span>{message.message}</span>
+                    )}
+                  </div>
+                  <div className="message-options">
+                    <span className="timestamp">{formatTimestamp(message.createdAt)}</span>
+                    {message.senderId === currentUserId && (
+                      <div className="message-menu">
+                        <button>...</button>
+                        <div className="message-actions">
+                          <button onClick={() => setEditingMessage(message._id)}>Edit</button>
+                          <button onClick={() => handleDeleteMessage(message._id)}>Delete</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </React.Fragment>
+            );
+          })
         ) : (
           isFriend === true ? (
             <div className="no-messages">
@@ -226,6 +284,7 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
             </div>
           )
         )}
+        <div ref={messageEndRef} /> {/* Scroll target */}
       </div>
 
       {((isFriend === true) && (chat?.status === 'accepted' || chat?.status === 'active')) && (

@@ -187,15 +187,15 @@ body {
   background-color: #ff3333;
 }
 
-/* ChatWindow styles */
+/* Chat window */
 .chat-window {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: #f5f7fa; /* Lighter background for the chat window */
+  background-color: #f5f7fa;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Soft shadow for modern feel */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .messages {
@@ -204,10 +204,10 @@ body {
   padding-bottom: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Add space between messages */
+  gap: 12px;
 }
 
-/* Styling for individual message bubbles */
+/* Message container */
 .message {
   display: flex;
   flex-direction: column;
@@ -216,48 +216,48 @@ body {
   border-radius: 12px;
   max-width: 60%;
   word-wrap: break-word;
-  font-size: 0.95em;
-  line-height: 1.4;
-  position: relative;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); /* Subtle shadow for each message bubble */
+  position: relative; /* For positioning the three dots menu */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-/* Sent messages (your messages) */
+/* Sent message styling */
 .sent {
-  background-color: #007bff; /* Blue background for sent messages */
-  color: white; /* White text for sent messages */
-  align-self: flex-end; /* Align the entire bubble to the right */
-  border-radius: 12px 12px 0 12px; /* Custom border radius */
-  text-align: left;
+  background-color: #007bff;
+  color: white;
+  align-self: flex-end;
+  border-radius: 12px 12px 0 12px;
   margin-left: auto;
-  width: -webkit-fill-available;
 }
 
-/* Received messages (other users' messages) */
+/* Received message styling */
 .received {
-  background-color: #f1f1f5; /* Light grey background for received messages */
-  color: #333; /* Dark text for readability */
-  align-self: flex-start; /* Align the entire bubble to the left */
+  background-color: #f1f1f5;
+  color: #333;
+  align-self: flex-start;
   border-radius: 12px 12px 12px 0;
   margin-right: auto;
-  width: -webkit-fill-available;
 }
 
 /* Timestamp styling */
 .timestamp {
   font-size: 0.75em;
-  color: #000; /* Muted color for timestamps */
-  margin-top: 5px; /* Space between the message text and the timestamp */
-  align-self: flex-end;
+  color: rgba(255, 255, 255, 0.75); /* White for sent messages */
+  margin-top: 5px;
 }
 
-/* Message Options (Three dots for edit/delete) */
-.message-options {
+.received .timestamp {
+  color: rgba(0, 0, 0, 0.6); /* Dark for received messages */
+}
+
+/* Three dots menu (for edit/delete) */
+.message-menu {
+  position: sticky; /* sticky position it inside the message */
+  top: 10px;
+  right: 10px; /* Align to the right of the message bubble */
   display: flex;
   align-items: center;
-  position: absolute;
-  top: 5px;
-  right: 10px;
+  cursor: pointer;
+  z-index: 10;
 }
 
 .message-menu button {
@@ -265,27 +265,25 @@ body {
   border: none;
   cursor: pointer;
   font-size: 1.2em;
-  color: #666;
+  color: white;
   transition: color 0.2s ease;
-}
-
-.message-menu button:hover {
-  color: #007bff; /* Highlight the three dots on hover */
 }
 
 /* Dropdown for Edit/Delete actions */
 .message-actions {
-  display: none;
+  display: none; /* Hidden by default */
   position: absolute;
-  top: 25px;
+  top: 25px; /* Appears below the three dots */
   right: 0;
   background: white;
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for dropdown */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
+/* Show dropdown when hovering over the three dots */
 .message-menu:hover .message-actions {
   display: block;
 }
@@ -364,3 +362,19 @@ body {
   border-radius: 4px;
 }
 
+.message-date-badge {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.message-date-badge span {
+  background-color: #e1e1e1;
+  color: #555;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
