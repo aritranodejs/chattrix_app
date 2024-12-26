@@ -6,6 +6,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
 import Login from './components/Login';
+import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -35,7 +38,7 @@ const fetchMessagesForChat = async (receiverId, token) => {
 function App() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [chatMessages, setChatMessages] = useState({});
-  const [token, setToken] = useState(localStorage.getItem('token')); // Retrieve token from localStorage
+  const token = localStorage.getItem('token'); // Retrieve token from localStorage
 
   useEffect(() => {
     const fetchInitialMessages = async () => {
@@ -73,13 +76,17 @@ function App() {
     }));
   };
 
-  const isLoggedIn = !!localStorage.getItem('email');
+  const isLoggedIn = localStorage.getItem('token');
 
   return (
     <Router>
       <div className="app-container">
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/login" element={<Login />} />
           <Route
             path="/chat"
             element={isLoggedIn ? (

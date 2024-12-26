@@ -3,6 +3,7 @@ import axios from 'axios'; // Import axios for making API requests
 import { Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
+import ThreeDotsMenu from './ThreeDotsMenu';
 
 const Sidebar = ({ onSelectChat, selectedChatId }) => {
   const navigate = useNavigate();
@@ -153,6 +154,7 @@ const Sidebar = ({ onSelectChat, selectedChatId }) => {
     <div className="sidebar">
       <div className="sidebar-header">
         <h3>Chattrix</h3>
+        <ThreeDotsMenu />
       </div>
 
       {/* Search bar */}
@@ -176,9 +178,12 @@ const Sidebar = ({ onSelectChat, selectedChatId }) => {
             className={`chat-item ${selectedChatId === friend._id ? 'active' : ''}`} // Highlight active chat
             onClick={() => handleFriendClick(friend)} // Store friend info when clicked
           >
-            <Avatar>
-              <PersonIcon />
-            </Avatar>
+            <div className="avatar-wrapper">
+              <Avatar className="avatar">
+                <PersonIcon />
+              </Avatar>
+              {friend.isOnline && <span className="online-indicator"></span>}
+            </div>
             <div className="chat-details">
               <p>{friend.name}</p>
               {friend.isFriend === false ? (
@@ -192,7 +197,6 @@ const Sidebar = ({ onSelectChat, selectedChatId }) => {
                   <span className="badge bg-success">Friend</span> // Show "Friend" if already friends
                 )
               )}
-              {friend.isOnline && <span className="online-status"></span>} {/* Green dot for online */}
             </div>
           </div>
         ))}

@@ -27,16 +27,28 @@ body {
   border-radius: 4px;
 }
 
-/* Error Messages */
 .error-message {
-  color: white;
-  background-color: #ff4d4f;
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 15px;
-  text-align: center;
-  border: 1px solid #ff7875;
+  color: #d8000c; /* Darker red for better contrast */
+  border-radius: 5px; /* Rounded corners */
   font-weight: bold;
+  font-size: 14px; /* Slightly smaller font size for error messages */
+  bottom: -20px; /* Position it just below the input field */
+  left: 0;
+  width: 100%; /* Ensure it takes full width */
+  text-align: left; /* Align error message text to the left */
+  box-sizing: border-box; /* Prevent error message from overflowing */
+}
+
+.success-message {
+  color: #4f8a10; /* Darker green for better contrast */
+  border-radius: 5px; /* Rounded corners */
+  font-weight: bold;
+  font-size: 14px; /* Slightly smaller font size for success messages */
+  bottom: -20px; /* Position it just below the input field */
+  left: 0;
+  width: 100%; /* Ensure it takes full width */
+  text-align: left; /* Align success message text to the left */
+  box-sizing: border-box; /* Prevent success message from overflowing */
 }
 
 /* Login */
@@ -130,6 +142,88 @@ body {
   color: #333;
 }
 
+/* Header container */
+.header {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: azure; 
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;  /* Rounded corners for the entire header */
+  overflow: hidden;  /* Ensures rounded corners are maintained in case of child overflow */
+}
+
+/* Profile picture styling */
+.profile {
+  margin-right: 15px;
+}
+
+.profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;  /* Round profile picture */
+  object-fit: cover;
+  border: 2px solid white;  /* Optional: Add a border around the profile picture */
+}
+
+/* Header info styling */
+.header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Username styling */
+.username {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  text-align: left;
+}
+
+/* Status styling */
+.status {
+  margin: 5px 0 0;
+  font-size: 14px;
+  color: #25D366;  /* WhatsApp Green */
+}
+
+.no-chat-selected {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.5s ease-in-out;
+  transition: opacity 0.5s ease-in-out;
+  padding-left: 10px;
+}
+
+.no-messages h3{
+  text-align: center;
+  margin-top: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.5s ease-in-out;
+  transition: opacity 0.5s ease-in-out;
+  padding-left: 10px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Chat list and active chat styling */
 .chat-list {
   flex: 1;
@@ -165,11 +259,27 @@ body {
 }
 
 /* Online status (green dot) */
-.online-status {
-  width: 10px;
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar {
+  position: relative;
+  width: 50px; /* Adjust size as needed */
+  height: 50px;
+}
+
+.online-indicator {
+  position: absolute;
+  bottom: 2px; /* Position the indicator near the bottom-right */
+  right: 2px;  /* Adjust the placement as needed */
+  width: 10px; /* Size of the indicator */
   height: 10px;
-  background-color: #00ff00;
-  border-radius: 50%;
+  background-color: #4caf50; /* Green color for online */
+  border: 2px solid white; /* Optional border for better visibility */
+  border-radius: 50%; /* Make it circular */
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Optional shadow for style */
 }
 
 /* Logout button */

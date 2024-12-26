@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import MessageInput from './MessageInput';
+import Header from './Header';
 import axios from 'axios'; // To handle friend request and edit/delete messages
 import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client'; // Import Socket.IO client
 
 // Initialize socket connection (make sure to replace process.env.API_URL with the actual URL)
-const socket = io(process.env.REACT_APP_API_URL, {
-  transports: ['websocket'],
+// const socket = io(process.env.API_URL, {
+//   transports: ['websocket'],
+// });
+const socket = io('http://localhost:5001', {
+  transports: ['websocket'], // Force WebSocket transport
 });
 
 const ChatWindow = ({ chat, messages, onSendMessage }) => {
@@ -30,24 +34,30 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
     const isFriendStatus = localStorage.getItem(`isFriend_${chat._id}`) === 'true';
     setIsFriend(isFriendStatus);
     setChatMessages(messages);
-
+  
     // Join the room for real-time chat
     socket.emit('joinRoom', room);
     console.log(`Joined room: ${room}`);
-
+  
     // Listen for new messages in the room
     socket.on('message', (newMessage) => {
       console.log('New message received:', newMessage);
-
-      // Append new message to the chatMessages state
-      setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+  
+      // Ensure `createdAt` is a valid Date instance
+      const formattedMessage = {
+        ...newMessage,
+        createdAt: new Date(newMessage.createdAt), // Convert to Date object
+      };
+  
+      // Append the formatted message to the chatMessages state
+      setChatMessages((prevMessages) => [...prevMessages, formattedMessage]);
     });
-
+  
     // Cleanup listener when component unmounts
     return () => {
       socket.off('message');
     };
-  }, [messages, chat._id, room]);
+  }, [messages, chat._id, room]);  
 
   // Scroll to the bottom of the chat messages
   const scrollToBottom = () => {
@@ -203,6 +213,7 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
   return (
     <div className="chat-window">
       <div className="chat-header">
+        <Header userDetails={chat} chatStatus={chat?.status} isFriend={isFriend} />
         {isFriend === false && !loadingFriendRequest && (
           <button className="btn btn-primary" onClick={handleAddFriend}>
             Add Friend
@@ -224,11 +235,13 @@ const ChatWindow = ({ chat, messages, onSendMessage }) => {
                 {showDate && (
                   <div className="message-date-badge">
                     <span>{formatDate(message.createdAt)}</span>
-                  </div>
+                  </div> 
                 )}
                 <div className={`message ${message.senderId === currentUserId ? 'sent' : 'received'}`}>
                   <div className="message-content">
-                    <strong>{message.senderId === currentUserId ? 'You' : chat.name}: </strong>
+                    <div>
+                      <strong>{message.senderId === currentUserId ? 'You' : chat?.name}:</strong>
+                    </div>
                     {editingMessage === message._id ? (
                       <input
                         type="text"
