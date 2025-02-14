@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import axios from 'axios'; // Import axios for making API requests
 import { Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -18,15 +18,31 @@ const Sidebar = ({ onSelectChat, selectedChatId }) => {
   const token = localStorage.getItem('token');
   const id = localStorage.getItem('id');
 
+  // Handle logout API call and clear session
+  const handleLogout = useCallback(async () => {
+    try {
+      await axios.post(`${baseURL}/auth/logout`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      localStorage.removeItem("id");
+      localStorage.removeItem("email");
+      localStorage.removeItem("token");
+
+      navigate("/");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      setError("Failed to log out. Please try again.");
+    }
+  }, [baseURL, token, navigate]); // useCallback dependency array
+
   // Fetch friends from the API
   useEffect(() => {
     const fetchFriends = async () => {
       setLoading(true);
       try {
         const response = await axios.get(`${baseURL}/friends`, {
-          headers: {
-            Authorization: `Bearer ${token}` // Include the token in the Authorization header
-          }
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         if (response.status === 200) {
@@ -34,21 +50,20 @@ const Sidebar = ({ onSelectChat, selectedChatId }) => {
           const friendIds = friends.map(friend => {
             const friendData = friend.receiverId._id === id ? friend.senderId : friend.receiverId;
             return {
-              ...friendData, // Include the selected friend data
-              senderId: friend.senderId, // Include senderId
-              receiverId: friend.receiverId, // Include receiverId
-              isFriend: true, // Assuming these are friends
-              status: friend.status // Include friend request status if needed
+              ...friendData,
+              senderId: friend.senderId,
+              receiverId: friend.receiverId,
+              isFriend: true,
+              status: friend.status
             };
           });
-          setFriends(friendIds); // Store receiverId as the friend
+          setFriends(friendIds);
         } else {
-          setError('Failed to fetch friends.');
+          setError("Failed to fetch friends.");
         }
       } catch (err) {
-        setError('An error occurred while fetching friends.');
+        setError("An error occurred while fetching friends.");
         if (err.response?.status === 401) {
-          // Token is invalid or expired, logout the user
           handleLogout();
         }
       } finally {
@@ -57,7 +72,7 @@ const Sidebar = ({ onSelectChat, selectedChatId }) => {
     };
 
     fetchFriends();
-  }, [baseURL, token]);
+  }, [baseURL, token, id, handleLogout]); // handleLogout now has a stable reference
 
   // Handle clicking on a friend, storing their isFriend status in localStorage
   const handleFriendClick = (friend) => {
@@ -118,29 +133,6 @@ const Sidebar = ({ onSelectChat, selectedChatId }) => {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Handle logout API call and clear session
-  const handleLogout = async () => {
-    try {
-      // Call the logout API
-      await axios.post(`${baseURL}/auth/logout`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}` // Include the token in the Authorization header
-        }
-      });
-      
-      // Clear session storage
-      localStorage.removeItem('id');
-      localStorage.removeItem('email');
-      localStorage.removeItem('token');
-      
-      // Redirect to login page
-      navigate('/');
-    } catch (error) {
-      console.error('Error during logout:', error);
-      setError('Failed to log out. Please try again.');
     }
   };
 
